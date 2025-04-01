@@ -6,12 +6,12 @@ const quiz_schema = new mongoose.Schema(
   description: String,
   category: String,
   timeLimit: Number,
-  questions: [ObjectId],
-  createdBy: ObjectId,
+  questions: [Number],
+  createdBy: Number,
   createdAt: Date
 });
 
 const Quiz = mongoose.model('Quiz', quiz_schema);
 
 
-module.exports = quiz_schema;
+module.exports = Quiz;
