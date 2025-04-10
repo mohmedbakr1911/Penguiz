@@ -4,7 +4,7 @@ const Quiz = require('./schemas/quiz.schema')
 const Question = require('./schemas/question.schema')
 const Quiz_attempt = require('./schemas/quiz_attempt.schema')
 
-const db_connection = mongoose.connect('mongodb+srv://2022170867:ThHQGXYDaExNyIge@penguiz.7vkhzdf.mongodb.net/?retryWrites=true&w=majority&appName=Penguiz')
+const db_connection = mongoose.connect('mongodb://localhost:27017/')
     .then(() => { console.log("db connected") })
     .catch((err) => { console.log(`error: ${err}`) })
 
