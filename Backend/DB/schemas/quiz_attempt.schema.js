@@ -1,17 +1,24 @@
-const mongoose = require('mongoose')
-const User = require('./user.schema')
-const quiz_attempt_schame = new mongoose.Schema(
-  {
-    user: Number,
-    quiz: Number,
-    answers: [{ question: Number, answer: String }],
-    mohsens: Number,
-    startTime: Date,
-    endTime: Date,
-    completed: Boolean
-  }
-)
+const mongoose = require("mongoose");
+const { Schema } = mongoose;
+const User = require("./user.schema");
 
-const Quiz_attempt = mongoose.model('Quiz-Attempt', quiz_attempt_schame)
+const quiz_attempt_schame = new mongoose.Schema({
+  user: { type: Schema.Types.ObjectId, ref: "User" },
+  quiz: { type: Schema.Types.ObjectId, ref: "Quiz" },
+  user_answers: [
+    {
+      question: { type: Schema.Types.ObjectId, ref: "Question" },
+      answer: String,
+    },
+  ],
 
-module.exports = Quiz_attempt
+  quiz_attempts:[],
+  mohsens: Number,
+  startTime: Date,
+  endTime: Date,
+  completed: Boolean,
+});
+
+const Quiz_attempt = mongoose.model("Quiz-Attempt", quiz_attempt_schame);
+
+module.exports = Quiz_attempt;
