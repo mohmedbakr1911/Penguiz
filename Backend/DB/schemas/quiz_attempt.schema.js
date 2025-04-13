@@ -11,8 +11,6 @@ const quiz_attempt_schame = new mongoose.Schema({
       answer: String,
     },
   ],
-
-  quiz_attempts:[],
   mohsens: Number,
   startTime: Date,
   endTime: Date,

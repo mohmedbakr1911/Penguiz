@@ -25,10 +25,11 @@ const user_schema = new mongoose.Schema({
   },
   quiz_attempt: [
     {
-      quizAttempt: { type: Schema.Types.ObjectId, ref: "Quiz-Attempt" },
+      type: Schema.Types.ObjectId, ref: "Quiz-Attempt" ,
       required: true,
     },
   ],
+  
   mohsens: { type: Number, default: 0 },
   role: { type: String, default: "user" },
   createdAt: { type: Date, default: Date.now },
