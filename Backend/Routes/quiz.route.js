@@ -15,6 +15,7 @@ const router = express.Router()
 router.get('/', authorization, quizController.get_all_quizzes);
 
 router.post('/create',
+    authorization,
     isAdmin,
     createQuizValidationRules,
     validate,
@@ -29,12 +30,24 @@ router.get('/:id',
 );
 
 router.put('/update/:id',
+    authorization,
     isAdmin,
     idParamValidationRule,
     updateQuizValidationRules,
     validate,
     quizController.update_quiz
 );
+
+router.put(
+  "/add_question/:id",
+  authorization,
+  isAdmin,
+  idParamValidationRule,
+  updateQuizValidationRules,
+  validate,
+  quizController.add_Question
+);
+
 
 router.delete('/delete/:id',
     isAdmin,

@@ -16,18 +16,21 @@ const authorization = (req, res, next) => {
 }
 
 const isAdmin = (req, res, next) => {
-    try {
-        authorization(req, res, next)
-        if (req.user.role === 'admin') {
-            next()
-        }
-        else {
-            res.status(403).json({ status: "failed", message: "You are not authorized" })
-        }
-    } catch (error) {
-        res.status(403).json({ status: "failed", message: "You are not authorized" })
-    }
-}
+  if (!req.user) {
+    return res
+      .status(403)
+      .json({ status: "failed", message: "You are not authorized" });
+  }
+
+  if(req.user.role !== "admin")
+  {
+   return res
+     .status(403)
+     .json({ status: "failed", message: "You are not admin" }); 
+  }
+  next();
+};
+
 
 const isUser = (req, res, next) => {
     try {

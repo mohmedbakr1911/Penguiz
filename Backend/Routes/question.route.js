@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.use(authorization);
 
-router.post('/create', isAdmin, createQuestionValidationRules, validate, questionController.create_question);
+router.post('/create',authorization,isAdmin, createQuestionValidationRules, validate, questionController.create_question);
 router.get('/', authorization, questionController.get_all_questions);
 
 router.get('/:id', authorization, idParamValidationRule, validate, questionController.get_question);

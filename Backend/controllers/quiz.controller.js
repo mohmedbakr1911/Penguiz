@@ -73,13 +73,12 @@ const create_quiz = async (req, res) => {
 const get_all_quizzes = async (req, res) => {
   try {
     const quizzes = await Quiz.find()
-      .select("-questions")
-      .populate("createdBy", "username");
+      .populate("createdBy", "username","Question");
     res.status(200).json({ status: "success", data: quizzes });
   } catch (error) {
     res
       .status(500)
-      .json({ status: "failed", message: "Failed to retrieve quizzes." });
+      .json({ status: "failed", message: `Failed to retrieve quizzes; due to ${error}` });
   }
 };
 
@@ -99,7 +98,7 @@ const get_quiz = async (req, res) => {
   } catch (error) {
     res
       .status(500)
-      .json({ status: "failed", message: "Failed to retrieve quiz details." });
+      .json({ status: "failed", message: `Failed to retrieve quiz details. due to ${error}` });
   }
 };
 
@@ -199,10 +198,29 @@ const delete_quiz = async (req, res) => {
   }
 };
 
+
+const add_Question = async (req,res)=>{
+  try {
+    const quizId = req.params.id;
+    const { question_id } = req.body;
+    const quiz = await Quiz.findById(quizId);
+
+    quiz.questions = [...quiz.questions, question_id];
+
+
+    await quiz.save();
+
+    res.status(200).json({message: "a new question has been added", question_id})
+  } catch (error) {
+    res.status(500).json({message: error})
+  }
+}
+
 module.exports = {
   create_quiz,
   get_all_quizzes,
   get_quiz,
   update_quiz,
   delete_quiz,
+  add_Question
 };
