@@ -33,34 +33,32 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: `http://localhost:${5000}`, // Adjust if your server runs elsewhere
+        url: `http://localhost:${process.env.PORT}`,
         description: 'Development server',
       },
     ],
     components: {
       securitySchemes: {
-        cookieAuth: { // Name for the security scheme
+        cookieAuth: {
           type: 'apiKey',
           in: 'cookie',
-          name: 'token', // Name of the cookie
+          name: 'token',
         },
       },
     },
-    security: [ // Apply cookieAuth globally
+    security: [
       {
         cookieAuth: [],
       },
     ],
   },
-  apis: ['./Routes/*.js'], // Path to the API docs (your route files)
+  apis: ['./Routes/*.js'],
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-// --- End Swagger Setup ---
 
-
-app.listen(5000, () => {
+app.listen(process.env.PORT, () => {
   console.log(`app is running on port ${process.env.PORT}`);
 });
