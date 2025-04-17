@@ -15,6 +15,7 @@ const quiz_schema = new mongoose.Schema({
     ref: 'User',
     required: [true, 'Quiz must have a creator']
   },
+  
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

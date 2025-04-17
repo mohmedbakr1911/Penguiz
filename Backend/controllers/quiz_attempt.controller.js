@@ -99,12 +99,10 @@ const delete_attempt = async (req, res) => {
 const start = async (req, res) => {
   try {
     const quiz_id = req.params.id;
-    const { timeLimit } = req.body;
     const newAttempt = new QuizAttempt({
       user: req.user.id,
       quiz: quiz_id,
       startTime: Date.now(),
-      timeLimit,
     });
     await newAttempt.save();
 
@@ -130,7 +128,7 @@ const submit_quiz = async (req, res) => {
     }
 
     const startTime = attempt.startTime;
-    const timeLimitInMs = attempt.timeLimit * 60 * 1000;
+    const timeLimitInMs = attempt.quiz.timeLimit * 60 * 1000;
     const currentTime = new Date();
 
     if (currentTime - startTime > timeLimitInMs) {
