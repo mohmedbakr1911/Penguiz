@@ -1,6 +1,8 @@
 const express = require("express");
 const QuizAttempt = require("../DB/schemas/quiz_attempt.schema");
 const Quiz = require("../DB/schemas/quiz.schema");
+const Question = require("../DB/schemas/question.schema");
+const User = require("../DB/schemas/user.schema"); // Import User model
 
 const get_all_attempts = async (req, res) => {
   try {
@@ -30,7 +32,7 @@ const get_attempt = async (req, res) => {
 
 const createAttempt = async (req, res) => {
   try {
-    const { quiz_id } = req.params;
+    const quiz_id = req.params.id;
     const {
       user,
       quiz,
@@ -62,7 +64,7 @@ const createAttempt = async (req, res) => {
 
 const updateAttempt = async (req, res) => {
   try {
-    const { attempt_id } = req.params;
+    const attempt_id  = req.params.id;
     const { user_answers, mohsens, completed, quiz_attempts } = req.body;
     const updated_attempt = await QuizAttempt.findByIdAndUpdate(attempt_id, {
       user_answers,
@@ -82,7 +84,7 @@ const updateAttempt = async (req, res) => {
 
 const delete_attempt = async (req, res) => {
   try {
-    const { attempt_id } = req.params;
+    const attempt_id = req.params.id;
 
     const deleted_attempt = await QuizAttempt.findByIdAndDelete(attempt_id);
 
@@ -119,38 +121,60 @@ const start = async (req, res) => {
 const submit_quiz = async (req, res) => {
   try {
     const attempt_id = req.params.id;
-    const user_answers = req.body;
-    const attempt = QuizAttempt.findByIdAndUpdate(attempt_id, {
-      user_answers: user_answers,
-    }).populate("attempt.user_answers");
-    if (!attempt) {
-      throw new Error("Attempt not found");
-    }
+    const { attempt } = req;
+    const submitted_answers = req.body.user_answers;
 
-    const startTime = attempt.startTime;
-    const timeLimitInMs = attempt.quiz.timeLimit * 60 * 1000;
-    const currentTime = new Date();
+    const questionIds = submitted_answers.map(ua => ua.question);
 
-    if (currentTime - startTime > timeLimitInMs) {
-      throw new Error("Time limit exceeded. Cannot submit quiz.");
-    }
+    const questions = await Question.find({ '_id': { $in: questionIds } }).select('correctAnswer');
+    const correctAnswersMap = questions.reduce((map, q) => {
+        map[q._id.toString()] = q.correctAnswer;
+        return map;
+    }, {});
 
     let correctCount = 0;
-
-    for (const userAnswer of attempt.user_answers) {
-      const question = userAnswer.question;
-      if (question && userAnswer.answer === question.correctAnswer) {
+    for (const userAnswer of submitted_answers) {
+      const correctAnswer = correctAnswersMap[userAnswer.question];
+      if (correctAnswer !== undefined && userAnswer.answer === correctAnswer) {
         correctCount++;
       }
     }
 
-    // Save the mohsens (score) to the attempt
-    attempt.mohsens = correctCount;
-    await attempt.save();
+    const updatedAttempt = await QuizAttempt.findByIdAndUpdate(
+      attempt_id,
+      {
+        user_answers: submitted_answers,
+        mohsens: correctCount,
+        completed: true
+      },
+      { new: true }
+    );
 
-    return res.status(200).json({ message: attempt });
+    if (!updatedAttempt) {
+        return res.status(404).json({ message: "Attempt not found during final update." });
+    }
+
+    try {
+      const userUpdateResult = await User.findByIdAndUpdate(
+        attempt.user,
+        {
+          $push: { quiz_attempts: updatedAttempt._id },
+          $inc: { mohsens: correctCount }
+        },
+        { new: true }
+      );
+      if (!userUpdateResult) {
+        console.error(`User not found for update: ${attempt.user}`);
+      }
+    } catch (userUpdateError) {
+      console.error("Error updating user record:", userUpdateError);
+    }
+
+    return res.status(200).json(updatedAttempt);
+
   } catch (error) {
-    res.status(500).json({message: error});
+    console.error("Error submitting quiz:", error);
+    res.status(500).json({ message: "An internal server error occurred while processing the quiz submission." });
   }
 };
 

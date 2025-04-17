@@ -23,7 +23,7 @@ const user_schema = new mongoose.Schema({
     required: true,
     minlength: [6, "Password must be at least 6 characters long."],
   },
-  quiz_attempt: [
+  quiz_attempts: [
     {
       type: Schema.Types.ObjectId, ref: "Quiz-Attempt" ,
       required: true,
