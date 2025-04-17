@@ -1,5 +1,6 @@
 const express = require("express");
 const QuizAttempt = require("../DB/schemas/quiz_attempt.schema");
+const Quiz = require("../DB/schemas/quiz.schema");
 
 const get_all_attempts = async (req, res) => {
   try {
@@ -95,12 +96,72 @@ const delete_attempt = async (req, res) => {
   }
 };
 
+const start = async (req, res) => {
+  try {
+    const quiz_id = req.params.id;
+    const { timeLimit } = req.body;
+    const newAttempt = new QuizAttempt({
+      user: req.user.id,
+      quiz: quiz_id,
+      startTime: Date.now(),
+      timeLimit,
+    });
+    await newAttempt.save();
 
+    const quiz = await Quiz.findById(quiz_id).populate("questions");
+    res.status(200).json({
+      quiz: quiz,
+      Attempt: newAttempt,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error });
+  }
+};
+
+const submit_quiz = async (req, res) => {
+  try {
+    const attempt_id = req.params.id;
+    const user_answers = req.body;
+    const attempt = QuizAttempt.findByIdAndUpdate(attempt_id, {
+      user_answers: user_answers,
+    }).populate("attempt.user_answers");
+    if (!attempt) {
+      throw new Error("Attempt not found");
+    }
+
+    const startTime = attempt.startTime;
+    const timeLimitInMs = attempt.timeLimit * 60 * 1000;
+    const currentTime = new Date();
+
+    if (currentTime - startTime > timeLimitInMs) {
+      throw new Error("Time limit exceeded. Cannot submit quiz.");
+    }
+
+    let correctCount = 0;
+
+    for (const userAnswer of attempt.user_answers) {
+      const question = userAnswer.question;
+      if (question && userAnswer.answer === question.correctAnswer) {
+        correctCount++;
+      }
+    }
+
+    // Save the mohsens (score) to the attempt
+    attempt.mohsens = correctCount;
+    await attempt.save();
+
+    return res.status(200).json({ message: attempt });
+  } catch (error) {
+    res.status(500).json({message: error});
+  }
+};
 
 module.exports = {
   get_all_attempts,
   get_attempt,
   createAttempt,
   updateAttempt,
-  delete_attempt
+  delete_attempt,
+  start,
+  submit_quiz,
 };

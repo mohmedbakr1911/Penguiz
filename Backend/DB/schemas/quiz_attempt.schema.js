@@ -13,7 +13,10 @@ const quiz_attempt_schame = new mongoose.Schema({
   ],
   mohsens: Number,
   startTime: Date,
-  endTime: Date,
+  timeLimit: {
+    type: Number,
+    required: true,
+  },
   completed: Boolean,
 });
 
